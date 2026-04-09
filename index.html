@@ -83,7 +83,7 @@
 
 <script>
 const ADMIN_PASS = 'admin123';
-let knowledgeBase = localStorage.getItem('shared_knowledge') || 'База знаний пока пуста.';
+let knowledgeBase = localStorage.getItem('shared_knowledge') || '';
 
 // ========== ПРИВЕТСТВИЯ И ПРОСТЫЕ ФРАЗЫ ==========
 const GREETINGS = {
@@ -94,19 +94,18 @@ const GREETINGS = {
     'добрый день': 'Добрый день! Чем могу быть полезен?',
     'добрый вечер': 'Добрый вечер! 🌙 Задавайте вопросы.',
     'приветствую': 'Приветствую! Спрашивайте.',
-    
-    'кто ты': 'Я — Ассистент Базы Знаний. Моя задача — отвечать на вопросы по загруженной информации. Если ответа нет в базе, я честно об этом говорю.',
-    'ты кто': 'Я Ассистент Базы Знаний. Отвечаю строго по загруженному тексту.',
-    'что ты умеешь': 'Я умею:\n• Находить пароли и коды\n• Подсказывать контакты\n• Отвечать о расписании\n• Объяснять правила\n\nСпрашивайте!',
-    
+    'хай': 'Привет! 👋 Что хотите узнать?',
+    'hello': 'Hello! How can I help you?',
+    'hi': 'Hi there! What would you like to know?',
     'как дела': 'У меня всё отлично! Я работаю 24/7, не устаю и всегда готов помочь. А как у вас дела?',
     'как ты': 'Всё прекрасно! Готов к работе. Что хотите узнать?',
     'как жизнь': 'Жизнь кипит! Вопросов много — ответов ещё больше. Спрашивайте!',
-    
+    'кто ты': 'Я — Ассистент Базы Знаний. Моя задача — отвечать на вопросы по загруженной информации. Если ответа нет в базе, я честно об этом говорю.',
+    'ты кто': 'Я Ассистент Базы Знаний. Отвечаю строго по загруженному тексту.',
+    'что ты умеешь': 'Я умею:\n• Находить пароли и коды\n• Подсказывать контакты\n• Отвечать о расписании\n• Объяснять правила\n\nСпрашивайте!',
     'спасибо': 'Пожалуйста! 😊 Обращайтесь ещё.',
     'благодарю': 'Рад помочь! Если будут ещё вопросы — спрашивайте.',
     'спс': 'Не за что! Всегда готов помочь.',
-    
     'пока': 'До свидания! 👋 Возвращайтесь, если понадоблюсь.',
     'до свидания': 'Всего доброго! Буду ждать новых вопросов.'
 };
@@ -172,31 +171,46 @@ async function updateKnowledge() {
 function findAnswer(question) {
     const q = question.toLowerCase().trim();
     
-    // 1. ПРОВЕРКА ПРИВЕТСТВИЙ И ПРОСТЫХ ФРАЗ
+    // 1. ПРОВЕРКА ПРИВЕТСТВИЙ И ПРОСТЫХ ФРАЗ (СНАЧАЛА!)
     for (let [key, answer] of Object.entries(GREETINGS)) {
         if (q.includes(key)) return answer;
     }
     
-    // 2. ПРОВЕРКА БАЗЫ ЗНАНИЙ
-    if (!knowledgeBase || knowledgeBase.length < 20) {
-        return "База знаний пока пуста. Администратор ещё не загрузил информацию. Попробуйте позже.";
+    // 2. Если база пуста
+    if (!knowledgeBase || knowledgeBase.length < 10) {
+        return "База знаний пока пуста. Администратор ещё не загрузил информацию. Но я могу ответить на простые вопросы — попробуйте спросить 'привет' или 'кто ты'.";
     }
     
-    const sentences = knowledgeBase.split(/[.!?]\s+/).filter(s => s.length > 10);
-    const qWords = q.split(/[\s,;]+/).filter(w => w.length > 2);
+    // 3. ПОИСК ПО БАЗЕ ЗНАНИЙ
+    const sentences = knowledgeBase.split(/[.!?]\s+/).filter(s => s.length > 5);
+    const qWords = q.split(/[\s,;?!]+/).filter(w => w.length > 2);
     
     const scored = sentences.map(sentence => {
         const s = sentence.toLowerCase();
         let score = 0;
-        for (let w of qWords) { if (s.includes(w)) score += 10; }
+        
+        // Совпадение слов
+        for (let w of qWords) { 
+            if (s.includes(w)) score += 10;
+        }
+        
+        // Совпадение чисел (пароли, коды, время)
         const qNums = q.match(/\d+/g) || [];
         const sNums = s.match(/\d+/g) || [];
         qNums.forEach(n => { if (sNums.includes(n)) score += 20; });
-        if (q.includes('когда') || q.includes('время')) { if (s.match(/\d{1,2}[:.]\d{2}/)) score += 15; }
-        if (q.includes('почта') || q.includes('email') || q.includes('@')) { if (s.includes('@')) score += 15; }
-        if (q.includes('кто')) { if (s.match(/[А-Я][а-я]+\s[А-Я][а-я]+/)) score += 15; }
-        if (q.includes('пароль') || q.includes('код')) { if (s.includes('пароль') || s.includes('код')) score += 25; }
-        if (q.includes('как') || q.includes('что такое')) { score += 5; }
+        
+        // Вопросы про время
+        if ((q.includes('когда') || q.includes('время') || q.includes('часов')) && s.match(/\d{1,2}[:.]\d{2}/)) score += 15;
+        
+        // Вопросы про контакты
+        if ((q.includes('почта') || q.includes('email') || q.includes('@')) && s.includes('@')) score += 15;
+        
+        // Вопросы "кто"
+        if (q.includes('кто') && s.match(/[А-Я][а-я]+\s[А-Я][а-я]+/)) score += 15;
+        
+        // Вопросы про пароль/код
+        if ((q.includes('пароль') || q.includes('код')) && (s.includes('пароль') || s.includes('код'))) score += 25;
+        
         return { sentence, score };
     });
     
@@ -206,7 +220,7 @@ function findAnswer(question) {
     if (scored[0].score > 10) return `Вот что нашлось:\n\n"${scored[0].sentence.trim()}"`;
     if (scored[0].score > 5) return `Возможно, это:\n\n"${scored[0].sentence.trim()}"\n\nЕсли нет — уточните вопрос.`;
     
-    return `К сожалению, в базе знаний нет информации по запросу "${question}".\n\nПопробуйте переформулировать вопрос или обратитесь к администратору для добавления нужных данных.`;
+    return `К сожалению, в базе знаний нет информации по запросу "${question}".\n\nПопробуйте переформулировать вопрос или обратитесь к администратору.`;
 }
 
 // ========== ОТПРАВКА ==========
@@ -214,12 +228,17 @@ async function askQuestion() {
     const input = document.getElementById('questionInput');
     const q = input.value.trim();
     if (!q) return;
+    
     addMessage(q, 'user');
     input.value = '';
+    
     document.getElementById('typing').style.display = 'flex';
     document.getElementById('askBtn').disabled = true;
+    
     await new Promise(r => setTimeout(r, 500 + Math.random() * 700));
+    
     const answer = findAnswer(q);
+    
     document.getElementById('typing').style.display = 'none';
     addMessage(answer, 'bot');
     document.getElementById('askBtn').disabled = false;
