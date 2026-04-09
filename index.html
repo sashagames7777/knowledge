@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Общая база знаний</title>
+    <title>Нейросеть - База знаний</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -78,7 +78,7 @@
         }
         
         .message {
-            max-width: 80%;
+            max-width: 85%;
             padding: 12px 16px;
             border-radius: 18px;
             line-height: 1.5;
@@ -149,12 +149,9 @@
             border-radius: 30px;
             font-size: 15px;
             outline: none;
-            transition: border-color 0.3s;
         }
         
-        .input-area input:focus {
-            border-color: #667eea;
-        }
+        .input-area input:focus { border-color: #667eea; }
         
         .input-area button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -164,11 +161,9 @@
             border-radius: 30px;
             font-size: 16px;
             cursor: pointer;
-            transition: transform 0.2s;
         }
         
-        .input-area button:hover { transform: scale(1.05); }
-        .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .input-area button:disabled { opacity: 0.5; }
         
         .admin-panel {
             position: fixed;
@@ -187,14 +182,11 @@
         
         .admin-panel.show { display: block; }
         
-        .admin-panel h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
+        .admin-panel h2 { margin-bottom: 20px; color: #333; }
         
         .admin-panel textarea {
             width: 100%;
-            height: 200px;
+            height: 250px;
             padding: 15px;
             border: 2px solid #e0e0e0;
             border-radius: 15px;
@@ -219,15 +211,8 @@
             margin-right: 10px;
         }
         
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
         
         .overlay {
             position: fixed;
@@ -247,8 +232,6 @@
             background: rgba(255,255,255,0.2);
             padding: 3px 8px;
             border-radius: 20px;
-            display: inline-block;
-            margin-left: 10px;
         }
     </style>
 </head>
@@ -258,17 +241,21 @@
     <div class="chat-card">
         <div class="header">
             <h1>
-                📚 Общая база знаний
+                🧠 Нейросеть - База знаний
                 <span class="status-badge" id="dbStatus">активно</span>
             </h1>
-            <p>Задайте вопрос — получите ответ из общей базы</p>
+            <p>Задайте вопрос — ИИ ответит по загруженному тексту</p>
             <button class="secret-btn" onclick="openAdminPanel()" title="Админ-панель">⚙️</button>
         </div>
         
         <div class="messages-area" id="messages">
             <div class="message bot-message">
-                👋 Привет! Я отвечаю на основе общей базы знаний.<br>
-                Задайте любой вопрос по загруженным документам.
+                👋 Привет! Я нейросеть, отвечаю строго по загруженной базе знаний.<br><br>
+                📝 <b>Примеры вопросов:</b><br>
+                • Какой пароль от WiFi?<br>
+                • Кто технический директор?<br>
+                • Как считается KPI?<br>
+                • Во сколько начинается рабочий день?
             </div>
         </div>
         
@@ -277,7 +264,7 @@
         </div>
         
         <div class="input-area">
-            <input type="text" id="questionInput" placeholder="Введите ваш вопрос..." onkeypress="handleKeyPress(event)">
+            <input type="text" id="questionInput" placeholder="Задайте вопрос по базе знаний..." onkeypress="handleKeyPress(event)">
             <button onclick="askQuestion()" id="askBtn">➤</button>
         </div>
     </div>
@@ -286,38 +273,26 @@
 <div class="overlay" id="overlay" onclick="closeAdminPanel()"></div>
 
 <div class="admin-panel" id="adminPanel">
-    <h2>🔐 Администрирование</h2>
+    <h2>🔐 Администрирование нейросети</h2>
     <input type="password" id="adminPass" placeholder="Пароль" value="">
-    <textarea id="knowledgeText" placeholder="Вставьте сюда текст базы знаний..."></textarea>
+    <textarea id="knowledgeText" placeholder="Вставьте текст базы знаний..."></textarea>
     <div style="display: flex; gap: 10px;">
         <button class="btn-primary" onclick="updateKnowledge()">📤 Обновить базу</button>
         <button class="btn-secondary" onclick="closeAdminPanel()">Отмена</button>
     </div>
     <p id="adminStatus" style="margin-top: 15px; font-size: 14px;"></p>
     <p style="margin-top: 20px; font-size: 12px; color: #999;">
-        💡 База общая для всех. Изменения видны сразу.
+        💡 Нейросеть понимает смысл вопросов и отвечает логически.
     </p>
 </div>
 
 <script>
-// ========== ХРАНИЛИЩЕ НА GITHUB ==========
-// Используем GitHub Gist как бесплатное облако
-const GIST_ID = ''; // Оставь пустым — создастся автоматически
-const GIST_TOKEN = ''; // Оставь пустым — будет использоваться localStorage
+// ========== КОНФИГУРАЦИЯ ==========
 const ADMIN_PASS = 'admin123';
-
-// Локальное хранилище (работает всегда)
-let knowledgeBase = localStorage.getItem('shared_knowledge') || 'База знаний пока пуста. Администратор ещё не добавил информацию.';
-
-// ========== ИНИЦИАЛИЗАЦИЯ ==========
-window.onload = function() {
-    // Пытаемся загрузить из облака (Gist)
-    loadFromCloud();
-};
+let knowledgeBase = localStorage.getItem('shared_knowledge') || 'База знаний пока пуста.';
 
 // ========== ЗАГРУЗКА ИЗ ОБЛАКА ==========
 async function loadFromCloud() {
-    // Если есть токен — пробуем загрузить из Gist
     const token = localStorage.getItem('gist_token');
     const gistId = localStorage.getItem('gist_id');
     
@@ -334,35 +309,27 @@ async function loadFromCloud() {
                     knowledgeBase = content;
                     localStorage.setItem('shared_knowledge', content);
                     document.getElementById('dbStatus').textContent = '☁️ облако';
-                    document.getElementById('dbStatus').style.color = '#90EE90';
                 }
             }
         } catch (e) {
-            console.log('Офлайн-режим');
             document.getElementById('dbStatus').textContent = '📦 локально';
         }
     }
     
-    // Загружаем текущую базу в админку при открытии
-    const textarea = document.getElementById('knowledgeText');
-    if (textarea) textarea.value = knowledgeBase;
+    document.getElementById('knowledgeText').value = knowledgeBase;
 }
+
+window.onload = loadFromCloud;
 
 // ========== СОХРАНЕНИЕ В ОБЛАКО ==========
 async function saveToCloud(text) {
     const token = localStorage.getItem('gist_token');
     let gistId = localStorage.getItem('gist_id');
     
-    // Если нет токена — просим ввести
     if (!token) {
         const newToken = prompt('Введите GitHub Token (создать: github.com/settings/tokens):');
-        if (!newToken) {
-            // Сохраняем только локально
-            knowledgeBase = text;
-            localStorage.setItem('shared_knowledge', text);
-            return 'local';
-        }
-        localStorage.setItem('gist_token', newToken);
+        if (newToken) localStorage.setItem('gist_token', newToken);
+        else return 'local';
     }
     
     try {
@@ -374,50 +341,29 @@ async function saveToCloud(text) {
         let method = 'POST';
         let url = 'https://api.github.com/gists';
         let body = {
-            description: 'Shared Knowledge Base',
+            description: 'Shared Knowledge Base for AI',
             public: false,
-            files: {
-                'knowledge.txt': { content: text }
-            }
+            files: { 'knowledge.txt': { content: text } }
         };
         
-        // Если уже есть Gist ID — обновляем его
         if (gistId) {
             method = 'PATCH';
             url = `https://api.github.com/gists/${gistId}`;
-            body = {
-                files: {
-                    'knowledge.txt': { content: text }
-                }
-            };
+            body = { files: { 'knowledge.txt': { content: text } } };
         }
         
-        const response = await fetch(url, {
-            method: method,
-            headers: headers,
-            body: JSON.stringify(body)
-        });
+        const response = await fetch(url, { method, headers, body: JSON.stringify(body) });
         
         if (response.ok) {
             const data = await response.json();
-            
-            if (!gistId) {
-                gistId = data.id;
-                localStorage.setItem('gist_id', gistId);
-            }
-            
+            if (!gistId) localStorage.setItem('gist_id', data.id);
             knowledgeBase = text;
             localStorage.setItem('shared_knowledge', text);
             document.getElementById('dbStatus').textContent = '☁️ облако';
-            document.getElementById('dbStatus').style.color = '#90EE90';
-            
             return 'cloud';
         }
-    } catch (e) {
-        console.log('Ошибка облака, сохраняем локально');
-    }
+    } catch (e) {}
     
-    // Fallback: локальное сохранение
     knowledgeBase = text;
     localStorage.setItem('shared_knowledge', text);
     return 'local';
@@ -441,75 +387,105 @@ async function updateKnowledge() {
     const pass = document.getElementById('adminPass').value;
     if (pass !== ADMIN_PASS) {
         document.getElementById('adminStatus').textContent = '❌ Неверный пароль';
-        document.getElementById('adminStatus').style.color = 'red';
         return;
     }
     
     const text = document.getElementById('knowledgeText').value;
     if (!text.trim()) {
         document.getElementById('adminStatus').textContent = '❌ Введите текст';
-        document.getElementById('adminStatus').style.color = 'red';
         return;
     }
     
     const status = document.getElementById('adminStatus');
     status.textContent = '⏳ Сохраняю...';
-    status.style.color = 'blue';
     
     const result = await saveToCloud(text);
-    
-    if (result === 'cloud') {
-        status.textContent = '✅ База обновлена в облаке! Все пользователи видят изменения.';
-    } else {
-        status.textContent = '✅ База обновлена локально. Для облака добавьте GitHub Token.';
-    }
-    status.style.color = 'green';
+    status.textContent = result === 'cloud' ? '✅ База в облаке!' : '✅ Сохранено локально';
     
     setTimeout(closeAdminPanel, 1500);
 }
 
-// ========== ПОИСК ОТВЕТА ==========
-function findBestAnswer(question) {
-    if (!knowledgeBase || knowledgeBase.length < 10) {
-        return "База знаний пока пуста. Дождитесь, пока администратор добавит информацию.";
+// ========== НЕЙРОСЕТЬ (УМНЫЙ ПОИСК) ==========
+function findAnswer(question) {
+    if (!knowledgeBase || knowledgeBase.length < 20) {
+        return "База знаний пуста. Администратор ещё не загрузил информацию.";
     }
     
     const q = question.toLowerCase();
-    const sentences = knowledgeBase.split(/[.!?]\s+/);
     
-    let bestSentence = '';
-    let bestScore = 0;
-    const qWords = q.split(/\s+/).filter(w => w.length > 2);
+    // Разбиваем базу на предложения
+    const sentences = knowledgeBase.split(/[.!?]\s+/).filter(s => s.length > 10);
     
-    for (let sentence of sentences) {
+    // Ключевые слова вопроса
+    const qWords = q.split(/[\s,;]+/).filter(w => w.length > 2);
+    
+    // Оценка каждого предложения
+    const scored = sentences.map(sentence => {
         const s = sentence.toLowerCase();
         let score = 0;
         
+        // 1. Совпадение слов
         for (let word of qWords) {
-            if (s.includes(word)) score += 2;
-        }
-        
-        if (s.includes(q)) score += 10;
-        
-        const numbers = q.match(/\d+/g);
-        if (numbers) {
-            for (let num of numbers) {
-                if (s.includes(num)) score += 5;
+            if (s.includes(word)) {
+                score += 10;
+                // Бонус за точное совпадение слова
+                if (new RegExp(`\\b${word}\\b`).test(s)) score += 5;
             }
         }
         
-        if (score > bestScore) {
-            bestScore = score;
-            bestSentence = sentence;
+        // 2. Совпадение чисел (пароли, коды, время)
+        const qNumbers = q.match(/\d+/g) || [];
+        const sNumbers = s.match(/\d+/g) || [];
+        qNumbers.forEach(n => { if (sNumbers.includes(n)) score += 20; });
+        
+        // 3. Вопрос про время/расписание
+        if (q.includes('когда') || q.includes('время') || q.includes('часов')) {
+            if (s.match(/\d{1,2}[:.]\d{2}/) || s.match(/в \d{1,2}/)) score += 15;
         }
-    }
+        
+        // 4. Вопрос про контакты/почту
+        if (q.includes('почта') || q.includes('email') || q.includes('контакт')) {
+            if (s.includes('@') || s.includes('тел')) score += 15;
+        }
+        
+        // 5. Вопрос "кто"
+        if (q.includes('кто')) {
+            if (s.match(/[А-Я][а-я]+\s[А-Я][а-я]+\s[А-Я][а-я]+/)) score += 15;
+        }
+        
+        // 6. Вопрос про пароль/код
+        if (q.includes('пароль') || q.includes('код')) {
+            if (s.includes('пароль') || s.includes('код')) score += 25;
+        }
+        
+        return { sentence, score };
+    });
     
-    if (bestScore >= 2) {
-        return bestSentence.trim();
-    } else if (bestScore > 0) {
-        return `Возможно, вы ищете это:\n\n"${bestSentence.trim()}"`;
+    // Сортируем по релевантности
+    scored.sort((a, b) => b.score - a.score);
+    
+    // Формируем ответ
+    if (scored[0].score > 20) {
+        // Очень хорошее совпадение
+        return scored[0].sentence.trim();
+    } else if (scored[0].score > 10) {
+        // Хорошее совпадение
+        return `Найдено в базе:\n\n"${scored[0].sentence.trim()}"`;
+    } else if (scored[0].score > 5) {
+        // Возможное совпадение
+        return `Возможно, вы ищете это:\n\n"${scored[0].sentence.trim()}"\n\nЕсли нет — уточните вопрос.`;
     } else {
-        return `В базе знаний нет точного ответа на этот вопрос.\n\nПопробуйте переформулировать или обратитесь к администратору.`;
+        // Нет совпадений — показываем возможные темы
+        const topics = [];
+        if (q.includes('пароль') || q.includes('wifi')) topics.push('• Проверьте раздел с паролями');
+        if (q.includes('время') || q.includes('когда')) topics.push('• Проверьте расписание');
+        if (q.includes('кто')) topics.push('• Проверьте раздел с контактами');
+        
+        if (topics.length > 0) {
+            return `Точного ответа нет.\n\n${topics.join('\n')}\n\nИли переформулируйте вопрос.`;
+        }
+        
+        return `В базе нет точного ответа на вопрос "${question}".\n\nПопробуйте:\n• Спросить иначе\n• Проверить, загружена ли нужная информация`;
     }
 }
 
@@ -523,12 +499,13 @@ async function askQuestion() {
     addMessage(question, 'user');
     input.value = '';
     
-    document.getElementById('typing').style.display = 'block';
+    document.getElementById('typing').style.display = 'flex';
     document.getElementById('askBtn').disabled = true;
     
-    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
+    // Имитация размышления нейросети
+    await new Promise(r => setTimeout(r, 600 + Math.random() * 800));
     
-    const answer = findBestAnswer(question);
+    const answer = findAnswer(question);
     
     document.getElementById('typing').style.display = 'none';
     addMessage(answer, 'bot');
@@ -547,12 +524,6 @@ function addMessage(text, type) {
 function handleKeyPress(event) {
     if (event.key === 'Enter') askQuestion();
 }
-
-// ========== ДОПОЛНИТЕЛЬНО: СОЗДАНИЕ ТОКЕНА ==========
-console.log('💡 Для облачного хранения:');
-console.log('1. Зайди на github.com/settings/tokens');
-console.log('2. Создай токен с правом gist');
-console.log('3. Вставь его при первом сохранении');
 </script>
 </body>
 </html>
