@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База знаний</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 14px;
+            margin: 20px 0;
+            resize: vertical;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        #response {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .admin-link {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .admin-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-link">
+            <a href="#" onclick="showAdmin()">⚙️ Админ</a>
+        </div>
+        
+        <h1>📚 База знаний</h1>
+        <p style="text-align:center; color:#666;">Задайте вопрос — получите ответ</p>
+        
+        <div id="userView">
+            <input type="text" id="question" placeholder="Например: Какой пароль от WiFi?">
+            <button onclick="ask()">🔍 Найти ответ</button>
+            <div id="response">✨ Здесь появится ответ...</div>
+        </div>
+        
+        <div id="adminView" style="display:none;">
+            <input type="password" id="pass" placeholder="Пароль">
+            <button onclick="login()">Войти</button>
+            
+            <div id="editor" style="display:none;">
+                <textarea id="text" placeholder="Вставьте текст базы знаний..."></textarea>
+                <button onclick="save()">💾 Сохранить для всех</button>
+                <p id="status"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Пароль админа
+        const PASS = 'admin123';
+        
+        // Загружаем базу при старте
+        let knowledge = localStorage.getItem('shared_base') || 'База пока пуста. Админ еще не добавил информацию.';
+        
+        // Загружаем из облака (простое JSON хранилище)
+        async function loadFromCloud() {
+            try {
+                let res = await fetch('https://api.jsonbin.io/v3/b/67f5a8e1e41b4d34e4a1c2d3/latest');
+                let data = await res.json();
+                knowledge = data.record.text;
+                localStorage.setItem('shared_base', knowledge);
+            } catch(e) {
+                console.log('Офлайн режим');
+            }
+        }
+        
+        loadFromCloud();
+        
+        function showAdmin() {
+            document.getElementById('userView').style.display = 'none';
+            document.getElementById('adminView').style.display = 'block';
+        }
+        
+        function login() {
+            let pass = document.getElementById('pass').value;
+            if(pass === PASS) {
+                document.getElementById('editor').style.display = 'block';
+                document.getElementById('text').value = knowledge;
+            } else {
+                alert('❌ Неверный пароль');
+            }
+        }
+        
+        function save() {
+            let text = document.getElementById('text').value;
+            knowledge = text;
+            localStorage.setItem('shared_base', text);
+            document.getElementById('status').innerHTML = '✅ Сохранено!';
+            document.getElementById('status').style.color = 'green';
+            
+            // Пытаемся сохранить в облако
+            fetch('https://api.jsonbin.io/v3/b/67f5a8e1e41b4d34e4a1c2d3', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: text})
+            }).catch(e => console.log('Локальное сохранение'));
+            
+            setTimeout(() => {
+                document.getElementById('adminView').style.display = 'none';
+                document.getElementById('userView').style.display = 'block';
+                document.getElementById('editor').style.display = 'none';
+                document.getElementById('pass').value = '';
+            }, 1000);
+        }
+        
+        function ask() {
+            let q = document.getElementById('question').value.toLowerCase();
+            if(!q) return;
+            
+            let sentences = knowledge.split(/[.!?]\s+/);
+            let best = '';
+            let bestScore = 0;
+            let words = q.split(' ').filter(w => w.length > 2);
+            
+            for(let s of sentences) {
+                let score = 0;
+                let low = s.toLowerCase();
+                for(let w of words) {
+                    if(low.includes(w)) score += 2;
+                }
+                if(low.includes(q)) score += 10;
+                if(score > bestScore) {
+                    bestScore = score;
+                    best = s;
+                }
+            }
+            
+            let resp = document.getElementById('response');
+            if(bestScore >= 2) {
+                resp.innerHTML = `<b>🔍 Найдено:</b><br><br>${best}`;
+            } else {
+                resp.innerHTML = `❌ В базе нет точного ответа.<br><br>Попробуйте переформулировать вопрос.`;
+            }
+        }
+    </script>
+</body>
+</html>
