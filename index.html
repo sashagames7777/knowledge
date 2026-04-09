@@ -6,233 +6,39 @@
     <title>Нейросеть - База знаний</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .chat-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            position: relative;
-        }
-        
-        .header h1 {
-            font-size: 22px;
-            font-weight: 500;
-            text-align: center;
-        }
-        
-        .header p {
-            text-align: center;
-            opacity: 0.9;
-            font-size: 13px;
-            margin-top: 5px;
-        }
-        
-        .secret-btn {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            opacity: 0.5;
-            transition: opacity 0.3s;
-        }
-        
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .chat-card { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; height: 90vh; display: flex; flex-direction: column; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; position: relative; }
+        .header h1 { font-size: 22px; font-weight: 500; text-align: center; }
+        .header p { text-align: center; opacity: 0.9; font-size: 13px; margin-top: 5px; }
+        .secret-btn { position: absolute; right: 20px; top: 20px; background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; opacity: 0.5; }
         .secret-btn:hover { opacity: 1; }
-        
-        .messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            background: #f8f9fa;
-        }
-        
-        .message {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            line-height: 1.5;
-            animation: fadeIn 0.3s;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .user-message {
-            background: #667eea;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-        
-        .bot-message {
-            background: white;
-            color: #333;
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .typing-indicator {
-            background: white;
-            padding: 12px 16px;
-            border-radius: 18px;
-            align-self: flex-start;
-            display: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .typing-indicator span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #999;
-            margin: 0 2px;
-            animation: typing 1.4s infinite;
-        }
-        
+        .messages-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #f8f9fa; }
+        .message { max-width: 85%; padding: 12px 16px; border-radius: 18px; line-height: 1.5; animation: fadeIn 0.3s; white-space: pre-wrap; word-wrap: break-word; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .user-message { background: #667eea; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .bot-message { background: white; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .typing-indicator { background: white; padding: 12px 16px; border-radius: 18px; align-self: flex-start; display: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #999; margin: 0 2px; animation: typing 1.4s infinite; }
         .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
-        }
-        
-        .input-area {
-            padding: 20px;
-            border-top: 1px solid #eee;
-            display: flex;
-            gap: 10px;
-            background: white;
-        }
-        
-        .input-area input {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 30px;
-            font-size: 15px;
-            outline: none;
-        }
-        
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+        .input-area { padding: 20px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white; }
+        .input-area input { flex: 1; padding: 15px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 15px; outline: none; }
         .input-area input:focus { border-color: #667eea; }
-        
-        .input-area button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 0 25px;
-            border-radius: 30px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        
-        .input-area button:disabled { opacity: 0.5; }
-        
-        .admin-panel {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            z-index: 1000;
-            width: 90%;
-            max-width: 600px;
-            display: none;
-        }
-        
+        .input-area button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0 25px; border-radius: 30px; font-size: 16px; cursor: pointer; }
+        .admin-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); z-index: 1000; width: 90%; max-width: 600px; display: none; }
         .admin-panel.show { display: block; }
-        
-        .admin-panel h2 { margin-bottom: 20px; color: #333; }
-        
-        .admin-panel textarea {
-            width: 100%;
-            height: 250px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            font-size: 14px;
-            resize: vertical;
-            margin-bottom: 20px;
-        }
-        
-        .admin-panel input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .admin-panel button {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-        
+        .admin-panel h2 { margin-bottom: 20px; }
+        .admin-panel textarea { width: 100%; height: 250px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 15px; resize: vertical; margin-bottom: 20px; }
+        .admin-panel input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; margin-bottom: 20px; }
+        .admin-panel button { padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; margin-right: 10px; }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #e0e0e0; color: #333; }
-        
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            display: none;
-        }
-        
+        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
         .overlay.show { display: block; }
-        
-        .status-badge {
-            font-size: 11px;
-            background: rgba(255,255,255,0.2);
-            padding: 3px 8px;
-            border-radius: 20px;
-        }
+        .status-badge { font-size: 11px; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -240,31 +46,23 @@
 <div class="container">
     <div class="chat-card">
         <div class="header">
-            <h1>
-                🧠 Нейросеть - База знаний
-                <span class="status-badge" id="dbStatus">активно</span>
-            </h1>
-            <p>Задайте вопрос — ИИ ответит по загруженному тексту</p>
+            <h1>🧠 Нейросеть-Ассистент <span class="status-badge" id="dbStatus">активно</span></h1>
+            <p>Задайте вопрос — я отвечу по базе знаний</p>
             <button class="secret-btn" onclick="openAdminPanel()" title="Админ-панель">⚙️</button>
         </div>
         
         <div class="messages-area" id="messages">
             <div class="message bot-message">
-                👋 Привет! Я нейросеть, отвечаю строго по загруженной базе знаний.<br><br>
-                📝 <b>Примеры вопросов:</b><br>
-                • Какой пароль от WiFi?<br>
-                • Кто технический директор?<br>
-                • Как считается KPI?<br>
-                • Во сколько начинается рабочий день?
+                👋 <b>Здравствуйте!</b> Я Ассистент Базы Знаний.<br><br>
+                Отвечаю на вопросы по загруженной информации.<br>
+                Спросите меня о чём угодно — пароли, контакты, расписание, правила.
             </div>
         </div>
         
-        <div class="typing-indicator" id="typing">
-            <span></span><span></span><span></span>
-        </div>
+        <div class="typing-indicator" id="typing"><span></span><span></span><span></span></div>
         
         <div class="input-area">
-            <input type="text" id="questionInput" placeholder="Задайте вопрос по базе знаний..." onkeypress="handleKeyPress(event)">
+            <input type="text" id="questionInput" placeholder="Напишите сообщение..." onkeypress="handleKeyPress(event)">
             <button onclick="askQuestion()" id="askBtn">➤</button>
         </div>
     </div>
@@ -273,100 +71,81 @@
 <div class="overlay" id="overlay" onclick="closeAdminPanel()"></div>
 
 <div class="admin-panel" id="adminPanel">
-    <h2>🔐 Администрирование нейросети</h2>
+    <h2>🔐 Администрирование</h2>
     <input type="password" id="adminPass" placeholder="Пароль" value="">
     <textarea id="knowledgeText" placeholder="Вставьте текст базы знаний..."></textarea>
     <div style="display: flex; gap: 10px;">
-        <button class="btn-primary" onclick="updateKnowledge()">📤 Обновить базу</button>
+        <button class="btn-primary" onclick="updateKnowledge()">📤 Обновить</button>
         <button class="btn-secondary" onclick="closeAdminPanel()">Отмена</button>
     </div>
-    <p id="adminStatus" style="margin-top: 15px; font-size: 14px;"></p>
-    <p style="margin-top: 20px; font-size: 12px; color: #999;">
-        💡 Нейросеть понимает смысл вопросов и отвечает логически.
-    </p>
+    <p id="adminStatus" style="margin-top: 15px;"></p>
 </div>
 
 <script>
-// ========== КОНФИГУРАЦИЯ ==========
 const ADMIN_PASS = 'admin123';
 let knowledgeBase = localStorage.getItem('shared_knowledge') || 'База знаний пока пуста.';
+
+// ========== ПРИВЕТСТВИЯ И ПРОСТЫЕ ФРАЗЫ ==========
+const GREETINGS = {
+    'привет': 'Здравствуйте! 👋 Чем могу помочь?',
+    'здравствуй': 'Здравствуйте! Я готов ответить на ваши вопросы.',
+    'здравствуйте': 'Добрый день! Спрашивайте, я помогу.',
+    'доброе утро': 'Доброе утро! ☀️ Что вас интересует?',
+    'добрый день': 'Добрый день! Чем могу быть полезен?',
+    'добрый вечер': 'Добрый вечер! 🌙 Задавайте вопросы.',
+    'приветствую': 'Приветствую! Спрашивайте.',
+    
+    'кто ты': 'Я — Ассистент Базы Знаний. Моя задача — отвечать на вопросы по загруженной информации. Если ответа нет в базе, я честно об этом говорю.',
+    'ты кто': 'Я Ассистент Базы Знаний. Отвечаю строго по загруженному тексту.',
+    'что ты умеешь': 'Я умею:\n• Находить пароли и коды\n• Подсказывать контакты\n• Отвечать о расписании\n• Объяснять правила\n\nСпрашивайте!',
+    
+    'как дела': 'У меня всё отлично! Я работаю 24/7, не устаю и всегда готов помочь. А как у вас дела?',
+    'как ты': 'Всё прекрасно! Готов к работе. Что хотите узнать?',
+    'как жизнь': 'Жизнь кипит! Вопросов много — ответов ещё больше. Спрашивайте!',
+    
+    'спасибо': 'Пожалуйста! 😊 Обращайтесь ещё.',
+    'благодарю': 'Рад помочь! Если будут ещё вопросы — спрашивайте.',
+    'спс': 'Не за что! Всегда готов помочь.',
+    
+    'пока': 'До свидания! 👋 Возвращайтесь, если понадоблюсь.',
+    'до свидания': 'Всего доброго! Буду ждать новых вопросов.'
+};
 
 // ========== ЗАГРУЗКА ИЗ ОБЛАКА ==========
 async function loadFromCloud() {
     const token = localStorage.getItem('gist_token');
     const gistId = localStorage.getItem('gist_id');
-    
     if (token && gistId) {
         try {
-            const response = await fetch(`https://api.github.com/gists/${gistId}`, {
-                headers: { 'Authorization': `token ${token}` }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const content = data.files['knowledge.txt']?.content || '';
-                if (content) {
-                    knowledgeBase = content;
-                    localStorage.setItem('shared_knowledge', content);
-                    document.getElementById('dbStatus').textContent = '☁️ облако';
-                }
+            const r = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${token}` } });
+            if (r.ok) {
+                const d = await r.json();
+                const c = d.files['knowledge.txt']?.content || '';
+                if (c) { knowledgeBase = c; localStorage.setItem('shared_knowledge', c); }
             }
-        } catch (e) {
-            document.getElementById('dbStatus').textContent = '📦 локально';
-        }
+        } catch(e) {}
     }
-    
     document.getElementById('knowledgeText').value = knowledgeBase;
 }
-
 window.onload = loadFromCloud;
 
-// ========== СОХРАНЕНИЕ В ОБЛАКО ==========
+// ========== СОХРАНЕНИЕ ==========
 async function saveToCloud(text) {
     const token = localStorage.getItem('gist_token');
     let gistId = localStorage.getItem('gist_id');
-    
     if (!token) {
-        const newToken = prompt('Введите GitHub Token (создать: github.com/settings/tokens):');
-        if (newToken) localStorage.setItem('gist_token', newToken);
-        else return 'local';
+        const t = prompt('GitHub Token (github.com/settings/tokens):');
+        if (t) localStorage.setItem('gist_token', t); else return 'local';
     }
-    
     try {
-        const headers = {
-            'Authorization': `token ${localStorage.getItem('gist_token')}`,
-            'Content-Type': 'application/json'
-        };
-        
-        let method = 'POST';
-        let url = 'https://api.github.com/gists';
-        let body = {
-            description: 'Shared Knowledge Base for AI',
-            public: false,
-            files: { 'knowledge.txt': { content: text } }
-        };
-        
-        if (gistId) {
-            method = 'PATCH';
-            url = `https://api.github.com/gists/${gistId}`;
-            body = { files: { 'knowledge.txt': { content: text } } };
-        }
-        
-        const response = await fetch(url, { method, headers, body: JSON.stringify(body) });
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (!gistId) localStorage.setItem('gist_id', data.id);
-            knowledgeBase = text;
-            localStorage.setItem('shared_knowledge', text);
-            document.getElementById('dbStatus').textContent = '☁️ облако';
-            return 'cloud';
-        }
-    } catch (e) {}
-    
-    knowledgeBase = text;
-    localStorage.setItem('shared_knowledge', text);
-    return 'local';
+        const h = { 'Authorization': `token ${localStorage.getItem('gist_token')}`, 'Content-Type': 'application/json' };
+        let method = 'POST', url = 'https://api.github.com/gists';
+        let body = { description: 'AI Knowledge Base', public: false, files: { 'knowledge.txt': { content: text } } };
+        if (gistId) { method = 'PATCH'; url = `https://api.github.com/gists/${gistId}`; body = { files: { 'knowledge.txt': { content: text } } }; }
+        const r = await fetch(url, { method, headers: h, body: JSON.stringify(body) });
+        if (r.ok) { const d = await r.json(); if (!gistId) localStorage.setItem('gist_id', d.id); knowledgeBase = text; localStorage.setItem('shared_knowledge', text); return 'cloud'; }
+    } catch(e) {}
+    knowledgeBase = text; localStorage.setItem('shared_knowledge', text); return 'local';
 }
 
 // ========== ИНТЕРФЕЙС ==========
@@ -375,155 +154,87 @@ function openAdminPanel() {
     document.getElementById('adminPanel').classList.add('show');
     document.getElementById('knowledgeText').value = knowledgeBase;
 }
-
 function closeAdminPanel() {
     document.getElementById('overlay').classList.remove('show');
     document.getElementById('adminPanel').classList.remove('show');
     document.getElementById('adminPass').value = '';
-    document.getElementById('adminStatus').textContent = '';
 }
-
 async function updateKnowledge() {
-    const pass = document.getElementById('adminPass').value;
-    if (pass !== ADMIN_PASS) {
-        document.getElementById('adminStatus').textContent = '❌ Неверный пароль';
-        return;
-    }
-    
+    if (document.getElementById('adminPass').value !== ADMIN_PASS) { alert('Неверный пароль'); return; }
     const text = document.getElementById('knowledgeText').value;
-    if (!text.trim()) {
-        document.getElementById('adminStatus').textContent = '❌ Введите текст';
-        return;
-    }
-    
-    const status = document.getElementById('adminStatus');
-    status.textContent = '⏳ Сохраняю...';
-    
-    const result = await saveToCloud(text);
-    status.textContent = result === 'cloud' ? '✅ База в облаке!' : '✅ Сохранено локально';
-    
-    setTimeout(closeAdminPanel, 1500);
+    if (!text.trim()) { alert('Введите текст'); return; }
+    await saveToCloud(text);
+    alert('✅ База обновлена!');
+    closeAdminPanel();
 }
 
-// ========== НЕЙРОСЕТЬ (УМНЫЙ ПОИСК) ==========
+// ========== УМНАЯ НЕЙРОСЕТЬ ==========
 function findAnswer(question) {
-    if (!knowledgeBase || knowledgeBase.length < 20) {
-        return "База знаний пуста. Администратор ещё не загрузил информацию.";
+    const q = question.toLowerCase().trim();
+    
+    // 1. ПРОВЕРКА ПРИВЕТСТВИЙ И ПРОСТЫХ ФРАЗ
+    for (let [key, answer] of Object.entries(GREETINGS)) {
+        if (q.includes(key)) return answer;
     }
     
-    const q = question.toLowerCase();
+    // 2. ПРОВЕРКА БАЗЫ ЗНАНИЙ
+    if (!knowledgeBase || knowledgeBase.length < 20) {
+        return "База знаний пока пуста. Администратор ещё не загрузил информацию. Попробуйте позже.";
+    }
     
-    // Разбиваем базу на предложения
     const sentences = knowledgeBase.split(/[.!?]\s+/).filter(s => s.length > 10);
-    
-    // Ключевые слова вопроса
     const qWords = q.split(/[\s,;]+/).filter(w => w.length > 2);
     
-    // Оценка каждого предложения
     const scored = sentences.map(sentence => {
         const s = sentence.toLowerCase();
         let score = 0;
-        
-        // 1. Совпадение слов
-        for (let word of qWords) {
-            if (s.includes(word)) {
-                score += 10;
-                // Бонус за точное совпадение слова
-                if (new RegExp(`\\b${word}\\b`).test(s)) score += 5;
-            }
-        }
-        
-        // 2. Совпадение чисел (пароли, коды, время)
-        const qNumbers = q.match(/\d+/g) || [];
-        const sNumbers = s.match(/\d+/g) || [];
-        qNumbers.forEach(n => { if (sNumbers.includes(n)) score += 20; });
-        
-        // 3. Вопрос про время/расписание
-        if (q.includes('когда') || q.includes('время') || q.includes('часов')) {
-            if (s.match(/\d{1,2}[:.]\d{2}/) || s.match(/в \d{1,2}/)) score += 15;
-        }
-        
-        // 4. Вопрос про контакты/почту
-        if (q.includes('почта') || q.includes('email') || q.includes('контакт')) {
-            if (s.includes('@') || s.includes('тел')) score += 15;
-        }
-        
-        // 5. Вопрос "кто"
-        if (q.includes('кто')) {
-            if (s.match(/[А-Я][а-я]+\s[А-Я][а-я]+\s[А-Я][а-я]+/)) score += 15;
-        }
-        
-        // 6. Вопрос про пароль/код
-        if (q.includes('пароль') || q.includes('код')) {
-            if (s.includes('пароль') || s.includes('код')) score += 25;
-        }
-        
+        for (let w of qWords) { if (s.includes(w)) score += 10; }
+        const qNums = q.match(/\d+/g) || [];
+        const sNums = s.match(/\d+/g) || [];
+        qNums.forEach(n => { if (sNums.includes(n)) score += 20; });
+        if (q.includes('когда') || q.includes('время')) { if (s.match(/\d{1,2}[:.]\d{2}/)) score += 15; }
+        if (q.includes('почта') || q.includes('email') || q.includes('@')) { if (s.includes('@')) score += 15; }
+        if (q.includes('кто')) { if (s.match(/[А-Я][а-я]+\s[А-Я][а-я]+/)) score += 15; }
+        if (q.includes('пароль') || q.includes('код')) { if (s.includes('пароль') || s.includes('код')) score += 25; }
+        if (q.includes('как') || q.includes('что такое')) { score += 5; }
         return { sentence, score };
     });
     
-    // Сортируем по релевантности
     scored.sort((a, b) => b.score - a.score);
     
-    // Формируем ответ
-    if (scored[0].score > 20) {
-        // Очень хорошее совпадение
-        return scored[0].sentence.trim();
-    } else if (scored[0].score > 10) {
-        // Хорошее совпадение
-        return `Найдено в базе:\n\n"${scored[0].sentence.trim()}"`;
-    } else if (scored[0].score > 5) {
-        // Возможное совпадение
-        return `Возможно, вы ищете это:\n\n"${scored[0].sentence.trim()}"\n\nЕсли нет — уточните вопрос.`;
-    } else {
-        // Нет совпадений — показываем возможные темы
-        const topics = [];
-        if (q.includes('пароль') || q.includes('wifi')) topics.push('• Проверьте раздел с паролями');
-        if (q.includes('время') || q.includes('когда')) topics.push('• Проверьте расписание');
-        if (q.includes('кто')) topics.push('• Проверьте раздел с контактами');
-        
-        if (topics.length > 0) {
-            return `Точного ответа нет.\n\n${topics.join('\n')}\n\nИли переформулируйте вопрос.`;
-        }
-        
-        return `В базе нет точного ответа на вопрос "${question}".\n\nПопробуйте:\n• Спросить иначе\n• Проверить, загружена ли нужная информация`;
-    }
+    if (scored[0].score > 20) return scored[0].sentence.trim();
+    if (scored[0].score > 10) return `Вот что нашлось:\n\n"${scored[0].sentence.trim()}"`;
+    if (scored[0].score > 5) return `Возможно, это:\n\n"${scored[0].sentence.trim()}"\n\nЕсли нет — уточните вопрос.`;
+    
+    return `К сожалению, в базе знаний нет информации по запросу "${question}".\n\nПопробуйте переформулировать вопрос или обратитесь к администратору для добавления нужных данных.`;
 }
 
-// ========== ОТПРАВКА СООБЩЕНИЯ ==========
+// ========== ОТПРАВКА ==========
 async function askQuestion() {
     const input = document.getElementById('questionInput');
-    const question = input.value.trim();
-    
-    if (!question) return;
-    
-    addMessage(question, 'user');
+    const q = input.value.trim();
+    if (!q) return;
+    addMessage(q, 'user');
     input.value = '';
-    
     document.getElementById('typing').style.display = 'flex';
     document.getElementById('askBtn').disabled = true;
-    
-    // Имитация размышления нейросети
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 800));
-    
-    const answer = findAnswer(question);
-    
+    await new Promise(r => setTimeout(r, 500 + Math.random() * 700));
+    const answer = findAnswer(q);
     document.getElementById('typing').style.display = 'none';
     addMessage(answer, 'bot');
     document.getElementById('askBtn').disabled = false;
 }
 
 function addMessage(text, type) {
-    const messagesDiv = document.getElementById('messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}-message`;
-    messageDiv.textContent = text;
-    messagesDiv.appendChild(messageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    const m = document.getElementById('messages');
+    const d = document.createElement('div');
+    d.className = `message ${type}-message`;
+    d.textContent = text;
+    m.appendChild(d);
+    m.scrollTop = m.scrollHeight;
 }
 
-function handleKeyPress(event) {
-    if (event.key === 'Enter') askQuestion();
-}
+function handleKeyPress(e) { if (e.key === 'Enter') askQuestion(); }
 </script>
 </body>
 </html>
