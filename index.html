@@ -1,183 +1,611 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Нейросеть с памятью</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Knowledge Base</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .chat-card { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; height: 90vh; display: flex; flex-direction: column; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; position: relative; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 22px; font-weight: 500; }
-        .header-actions { display: flex; gap: 10px; }
-        .header-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; opacity: 0.7; transition: all 0.3s; }
-        .header-btn:hover { opacity: 1; background: rgba(255,255,255,0.3); }
-        .messages-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #f8f9fa; }
-        .message { max-width: 80%; padding: 12px 16px; border-radius: 18px; line-height: 1.5; animation: fadeIn 0.3s; white-space: pre-wrap; word-wrap: break-word; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .user-message { background: #667eea; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .bot-message { background: white; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .typing-indicator { background: white; padding: 12px 16px; border-radius: 18px; align-self: flex-start; display: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .typing-indicator span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #999; margin: 0 2px; animation: typing 1.4s infinite; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
-        .input-area { padding: 20px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white; }
-        .input-area input { flex: 1; padding: 15px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 15px; outline: none; }
-        .input-area input:focus { border-color: #667eea; }
-        .input-area button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0 25px; border-radius: 30px; font-size: 16px; cursor: pointer; }
-        .input-area button:disabled { opacity: 0.5; }
+        
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e1b4b;
+            --light: #f8fafc;
+            --gray: #64748b;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            padding: 12px;
+        }
+        
+        .app {
+            max-width: 800px;
+            margin: 0 auto;
+            height: calc(100vh - 24px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Карточка чата */
+        .chat-container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Шапка */
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .ai-avatar {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-info h2 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        .header-info p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+        
+        /* Область сообщений */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            line-height: 1.5;
+            font-size: 15px;
+            animation: messageSlide 0.3s ease;
+            word-wrap: break-word;
+        }
+        
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        
+        .bot-message {
+            background: white;
+            color: #1e293b;
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Индикатор печати */
+        .typing {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 20px;
+            align-self: flex-start;
+            display: none;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gray);
+            animation: typingBounce 1.4s infinite;
+        }
+        
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+        
+        /* Поле ввода */
+        .input-area {
+            padding: 16px 20px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-area input {
+            flex: 1;
+            padding: 14px 18px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 30px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .input-area input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        
+        .send-btn {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         
         /* Модальные окна */
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); z-index: 1000; width: 90%; max-width: 500px; display: none; }
-        .modal.show { display: block; }
-        .modal.large { max-width: 700px; }
-        .modal h2 { margin-bottom: 20px; color: #333; }
-        .modal input { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; margin-bottom: 20px; font-size: 16px; }
-        .modal textarea { width: 100%; height: 300px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 15px; resize: vertical; margin-bottom: 20px; font-size: 14px; font-family: inherit; }
-        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
-        .btn { padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-secondary { background: #e0e0e0; color: #333; }
-        .btn-danger { background: #dc3545; color: white; }
-        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
-        .overlay.show { display: block; }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
         
-        /* Статус */
-        .status-badge { font-size: 11px; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 20px; }
+        .modal {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalSlide 0.3s ease;
+        }
         
-        /* Управление текстом в админке */
-        .text-editor { margin-top: 20px; }
-        .text-preview { background: #f8f9fa; padding: 15px; border-radius: 10px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; font-size: 13px; white-space: pre-wrap; }
-        .stats { display: flex; gap: 15px; margin-bottom: 20px; }
-        .stat { background: #f0f0f0; padding: 10px 15px; border-radius: 10px; }
-        .stat-value { font-size: 20px; font-weight: bold; color: #667eea; }
-        .stat-label { font-size: 12px; color: #666; }
+        @keyframes modalSlide {
+            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+        
+        .kb-stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .kb-preview {
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 16px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 16px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .modal textarea {
+            width: 100%;
+            height: 180px;
+            padding: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 16px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 8px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-danger {
+            background: #fef2f2;
+            color: var(--danger);
+        }
+        
+        .btn-success {
+            background: #ecfdf5;
+            color: var(--success);
+        }
+        
+        /* Уведомления */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-size: 14px;
+            z-index: 2000;
+            animation: toastSlide 0.3s ease;
+        }
+        
+        @keyframes toastSlide {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            body { padding: 8px; }
+            .app { height: calc(100vh - 16px); }
+            .chat-header { padding: 12px 16px; }
+            .ai-avatar { width: 36px; height: 36px; font-size: 18px; }
+            .header-info h2 { font-size: 16px; }
+            .message { max-width: 90%; font-size: 14px; }
+            .input-area { padding: 12px 16px; }
+            .input-area input { padding: 12px 16px; }
+            .send-btn { width: 46px; height: 46px; }
+            .modal { padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="chat-card">
-        <div class="header">
-            <h1>🧠 Нейросеть с памятью <span class="status-badge" id="dbStatus">онлайн</span></h1>
+<div class="app">
+    <div class="chat-container">
+        <!-- Шапка -->
+        <div class="chat-header">
+            <div class="header-left">
+                <div class="ai-avatar">🧠</div>
+                <div class="header-info">
+                    <h2>AI Assistant</h2>
+                    <p><span class="status-dot"></span> <span id="dbStatus">Online</span></p>
+                </div>
+            </div>
             <div class="header-actions">
-                <button class="header-btn" onclick="clearHistory()" title="Очистить историю">🗑️</button>
-                <button class="header-btn" onclick="showLoginModal()" title="Админ-панель">⚙️</button>
+                <button class="icon-btn" onclick="clearHistory()" title="Clear history">🗑️</button>
+                <button class="icon-btn" onclick="showLoginModal()" title="Admin panel">⚙️</button>
             </div>
         </div>
         
+        <!-- Сообщения -->
         <div class="messages-area" id="messages"></div>
         
-        <div class="typing-indicator" id="typing"><span></span><span></span><span></span></div>
+        <!-- Индикатор печати -->
+        <div class="typing" id="typing">
+            <div class="typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
         
+        <!-- Поле ввода -->
         <div class="input-area">
-            <input type="text" id="questionInput" placeholder="Задайте вопрос..." onkeypress="handleKeyPress(event)">
-            <button onclick="askQuestion()" id="askBtn">➤</button>
+            <input type="text" id="questionInput" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="askQuestion()" id="askBtn">➤</button>
         </div>
     </div>
 </div>
 
-<!-- Оверлей -->
-<div class="overlay" id="overlay" onclick="closeAllModals()"></div>
+<!-- Оверлей для модалок -->
+<div class="modal-overlay" id="modalOverlay"></div>
 
-<!-- Модальное окно входа -->
-<div class="modal" id="loginModal">
-    <h2>🔐 Вход в админ-панель</h2>
-    <input type="password" id="adminPass" placeholder="Введите пароль">
-    <div class="modal-buttons">
-        <button class="btn btn-secondary" onclick="closeAllModals()">Отмена</button>
-        <button class="btn btn-primary" onclick="login()">Войти</button>
+<!-- Модалка логина -->
+<div class="modal" id="loginModal" style="display: none;">
+    <div class="modal-header">
+        <h3>🔐 Admin Access</h3>
+        <button class="modal-close" onclick="closeModals()">✕</button>
+    </div>
+    <div class="modal-body">
+        <input type="password" id="adminPass" placeholder="Enter password" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="login()">Login</button>
     </div>
 </div>
 
-<!-- Модальное окно админки -->
-<div class="modal large" id="adminModal">
-    <h2>⚙️ Управление базой знаний</h2>
-    
-    <div class="stats">
-        <div class="stat">
-            <div class="stat-value" id="charCount">0</div>
-            <div class="stat-label">Символов</div>
-        </div>
-        <div class="stat">
-            <div class="stat-value" id="lineCount">0</div>
-            <div class="stat-label">Строк</div>
-        </div>
-        <div class="stat">
-            <div class="stat-value" id="historyCount">0</div>
-            <div class="stat-label">Сообщений в истории</div>
-        </div>
+<!-- Модалка админки -->
+<div class="modal" id="adminModal" style="display: none;">
+    <div class="modal-header">
+        <h3>⚙️ Knowledge Base</h3>
+        <button class="modal-close" onclick="closeModals()">✕</button>
     </div>
-    
-    <label style="font-weight: bold; margin-bottom: 10px; display: block;">📝 Текущая база знаний:</label>
-    <div class="text-preview" id="textPreview"></div>
-    
-    <div class="text-editor">
-        <label style="font-weight: bold; margin-bottom: 10px; display: block;">✏️ Редактировать:</label>
-        <textarea id="knowledgeText" placeholder="Вставьте или отредактируйте текст базы знаний..."></textarea>
-    </div>
-    
-    <div class="modal-buttons" style="justify-content: space-between;">
-        <button class="btn btn-danger" onclick="clearKnowledge()">🗑️ Очистить всё</button>
-        <div>
-            <button class="btn btn-secondary" onclick="closeAllModals()">Отмена</button>
-            <button class="btn btn-primary" onclick="saveKnowledge()">💾 Сохранить и обучить</button>
+    <div class="modal-body">
+        <!-- Статистика -->
+        <div class="kb-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="charCount">0</div>
+                <div class="stat-label">Chars</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lineCount">0</div>
+                <div class="stat-label">Lines</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="msgCount">0</div>
+                <div class="stat-label">Messages</div>
+            </div>
         </div>
+        
+        <!-- Предпросмотр -->
+        <label style="font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block;">📄 Current knowledge:</label>
+        <div class="kb-preview" id="kbPreview"></div>
+        
+        <!-- Редактор -->
+        <label style="font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block;">✏️ Edit knowledge:</label>
+        <textarea id="knowledgeText" placeholder="Paste or edit your knowledge base here..."></textarea>
+        
+        <!-- Кнопки действий -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <button class="btn btn-success" onclick="appendText()">➕ Append</button>
+            <button class="btn btn-danger" onclick="clearKnowledge()">🗑️ Clear all</button>
+        </div>
+        
+        <!-- Статус -->
+        <p id="adminStatus" style="font-size: 13px; color: var(--success); text-align: center;"></p>
     </div>
-    <p id="adminStatus" style="margin-top: 15px; color: green;"></p>
+    <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveKnowledge()">💾 Save & Train</button>
+    </div>
 </div>
 
 <script>
+// ========== КОНФИГУРАЦИЯ ==========
 const ADMIN_PASS = 'admin123';
 let knowledgeBase = '';
 let chatHistory = [];
 let isAdmin = false;
 
-// ========== ПРИВЕТСТВИЯ ==========
+// ========== ДВУЯЗЫЧНЫЕ ПРИВЕТСТВИЯ (RU/EN) ==========
 const GREETINGS = {
-    'привет': 'Здравствуйте! 👋 Чем могу помочь?',
-    'здравствуй': 'Здравствуйте! Я готов ответить на ваши вопросы.',
-    'здравствуйте': 'Добрый день! Спрашивайте, я помогу.',
-    'доброе утро': 'Доброе утро! ☀️ Что вас интересует?',
-    'добрый день': 'Добрый день! Чем могу быть полезен?',
-    'добрый вечер': 'Добрый вечер! 🌙 Задавайте вопросы.',
-    'хай': 'Привет! 👋 Что хотите узнать?',
-    'как дела': 'У меня всё отлично! Я работаю 24/7 и всегда готов помочь. А как у вас дела?',
-    'кто ты': 'Я — Нейросеть с памятью. Моя задача — отвечать на вопросы по загруженной базе знаний. Я помню контекст разговора и могу обучаться на новых данных.',
-    'что ты умеешь': 'Я умею:\n• Отвечать на вопросы по базе знаний\n• Помнить историю диалога\n• Обучаться на новых текстах\n• Находить пароли, контакты, расписание\n• Поддерживать беседу',
-    'спасибо': 'Пожалуйста! 😊 Обращайтесь ещё.',
-    'пока': 'До свидания! 👋 Буду ждать новых вопросов.'
+    // Русские
+    'привет': 'Привет! 👋 Чем могу помочь?',
+    'здравствуй': 'Здравствуйте! Задавайте вопросы.',
+    'здравствуйте': 'Добрый день! Что хотите узнать?',
+    'доброе утро': 'Доброе утро! ☀️',
+    'добрый день': 'Добрый день!',
+    'добрый вечер': 'Добрый вечер! 🌙',
+    'как дела': 'Всё отлично! Работаю 24/7. А у вас?',
+    'кто ты': 'Я AI Assistant — отвечаю по базе знаний и помню контекст.',
+    'что ты умеешь': '🔍 Поиск по базе\n💬 Общение\n📚 Обучение на текстах\n🌐 Понимаю English',
+    'спасибо': 'Пожалуйста! 😊',
+    'пока': 'До встречи! 👋',
+    
+    // Английские
+    'hello': 'Hello! 👋 How can I help you?',
+    'hi': 'Hi there! What would you like to know?',
+    'hey': 'Hey! Ready to assist.',
+    'good morning': 'Good morning! ☀️',
+    'good afternoon': 'Good afternoon!',
+    'good evening': 'Good evening! 🌙',
+    'how are you': 'I\'m great! Working 24/7. How about you?',
+    'who are you': 'I\'m AI Assistant — I answer based on knowledge base.',
+    'what can you do': '🔍 Search knowledge\n💬 Chat\n📚 Learn from texts\n🌐 Bilingual',
+    'thank you': 'You\'re welcome! 😊',
+    'thanks': 'Happy to help!',
+    'bye': 'Goodbye! 👋',
+    'goodbye': 'See you later!'
 };
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 function init() {
-    // Загружаем базу знаний
-    const saved = localStorage.getItem('knowledge_base');
+    const saved = localStorage.getItem('ai_knowledge');
     knowledgeBase = saved || '';
     
-    // Загружаем историю
-    const savedHistory = localStorage.getItem('chat_history');
+    const savedHistory = localStorage.getItem('ai_history');
     if (savedHistory) {
         chatHistory = JSON.parse(savedHistory);
         renderHistory();
     } else {
-        addBotMessage('👋 Здравствуйте! Я Нейросеть с памятью. Задавайте вопросы!');
+        addBotMessage('👋 Hello! I\'m AI Assistant with memory. Ask me anything!');
+        addBotMessage('🇷🇺 Привет! Я AI ассистент с памятью. Задавайте вопросы!');
     }
     
-    // Пытаемся загрузить из облака
     loadFromCloud();
-    
     updateStats();
 }
 
-// ========== ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ ==========
+// ========== ОБЛАКО ==========
 async function loadFromCloud() {
-    const token = localStorage.getItem('gist_token');
-    const gistId = localStorage.getItem('gist_id');
+    const token = localStorage.getItem('gh_token');
+    const gistId = localStorage.getItem('gh_gist');
     if (token && gistId) {
         try {
             const r = await fetch(`https://api.github.com/gists/${gistId}`, { 
@@ -185,11 +613,11 @@ async function loadFromCloud() {
             });
             if (r.ok) {
                 const d = await r.json();
-                const c = d.files['knowledge.txt']?.content || '';
+                const c = d.files['ai_knowledge.txt']?.content || '';
                 if (c && c !== knowledgeBase) {
                     knowledgeBase = c;
-                    localStorage.setItem('knowledge_base', c);
-                    document.getElementById('dbStatus').textContent = '☁️ облако';
+                    localStorage.setItem('ai_knowledge', c);
+                    document.getElementById('dbStatus').textContent = '☁️ Cloud';
                 }
             }
         } catch(e) {}
@@ -198,8 +626,8 @@ async function loadFromCloud() {
 }
 
 async function saveToCloud(text) {
-    const token = localStorage.getItem('gist_token');
-    let gistId = localStorage.getItem('gist_id');
+    const token = localStorage.getItem('gh_token');
+    let gistId = localStorage.getItem('gh_gist');
     if (!token) return 'local';
     
     try {
@@ -209,19 +637,19 @@ async function saveToCloud(text) {
         };
         let method = 'POST', url = 'https://api.github.com/gists';
         let body = { 
-            description: 'AI Knowledge Base with Memory', 
+            description: 'AI Knowledge Base', 
             public: false, 
-            files: { 'knowledge.txt': { content: text } } 
+            files: { 'ai_knowledge.txt': { content: text } } 
         };
         if (gistId) { 
             method = 'PATCH'; 
             url = `https://api.github.com/gists/${gistId}`; 
-            body = { files: { 'knowledge.txt': { content: text } } }; 
+            body = { files: { 'ai_knowledge.txt': { content: text } } }; 
         }
         const r = await fetch(url, { method, headers: h, body: JSON.stringify(body) });
         if (r.ok) { 
             const d = await r.json(); 
-            if (!gistId) localStorage.setItem('gist_id', d.id); 
+            if (!gistId) localStorage.setItem('gh_gist', d.id); 
             return 'cloud'; 
         }
     } catch(e) {}
@@ -230,8 +658,8 @@ async function saveToCloud(text) {
 
 // ========== ИНТЕРФЕЙС ==========
 function showLoginModal() {
-    document.getElementById('overlay').classList.add('show');
-    document.getElementById('loginModal').classList.add('show');
+    document.getElementById('modalOverlay').style.display = 'flex';
+    document.getElementById('loginModal').style.display = 'flex';
     document.getElementById('adminPass').value = '';
     document.getElementById('adminPass').focus();
 }
@@ -240,10 +668,10 @@ function login() {
     const pass = document.getElementById('adminPass').value;
     if (pass === ADMIN_PASS) {
         isAdmin = true;
-        closeAllModals();
+        closeModals();
         showAdminModal();
     } else {
-        alert('❌ Неверный пароль');
+        showToast('❌ Wrong password');
     }
 }
 
@@ -255,78 +683,82 @@ function showAdminModal() {
     updatePreview();
     updateStats();
     document.getElementById('knowledgeText').value = knowledgeBase;
-    document.getElementById('overlay').classList.add('show');
-    document.getElementById('adminModal').classList.add('show');
+    document.getElementById('modalOverlay').style.display = 'flex';
+    document.getElementById('adminModal').style.display = 'flex';
 }
 
-function closeAllModals() {
-    document.getElementById('overlay').classList.remove('show');
-    document.getElementById('loginModal').classList.remove('show');
-    document.getElementById('adminModal').classList.remove('show');
-    document.getElementById('adminPass').value = '';
+function closeModals() {
+    document.getElementById('modalOverlay').style.display = 'none';
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('adminModal').style.display = 'none';
 }
 
 function updatePreview() {
-    const preview = document.getElementById('textPreview');
+    const preview = document.getElementById('kbPreview');
     if (knowledgeBase) {
-        preview.textContent = knowledgeBase.length > 500 ? 
-            knowledgeBase.substring(0, 500) + '...' : knowledgeBase;
+        preview.textContent = knowledgeBase.length > 200 ? 
+            knowledgeBase.substring(0, 200) + '...' : knowledgeBase;
     } else {
-        preview.textContent = 'База знаний пуста. Добавьте текст для обучения.';
+        preview.textContent = 'Empty. Add some knowledge!';
     }
 }
 
 function updateStats() {
     document.getElementById('charCount').textContent = knowledgeBase.length;
     document.getElementById('lineCount').textContent = knowledgeBase.split('\n').filter(l => l.trim()).length;
-    document.getElementById('historyCount').textContent = chatHistory.length;
+    document.getElementById('msgCount').textContent = chatHistory.length;
+}
+
+// ========== УПРАВЛЕНИЕ БАЗОЙ ==========
+function appendText() {
+    const newText = prompt('Enter text to append:');
+    if (newText) {
+        knowledgeBase += '\n' + newText;
+        document.getElementById('knowledgeText').value = knowledgeBase;
+        updatePreview();
+        updateStats();
+        showToast('✅ Text appended');
+    }
+}
+
+function clearKnowledge() {
+    if (confirm('Delete ALL knowledge?')) {
+        knowledgeBase = '';
+        localStorage.setItem('ai_knowledge', '');
+        document.getElementById('knowledgeText').value = '';
+        updatePreview();
+        updateStats();
+        showToast('🗑️ Knowledge cleared');
+    }
 }
 
 async function saveKnowledge() {
     const text = document.getElementById('knowledgeText').value;
     knowledgeBase = text;
-    localStorage.setItem('knowledge_base', text);
+    localStorage.setItem('ai_knowledge', text);
     
-    // Сохраняем в облако
     const result = await saveToCloud(text);
     
-    const status = document.getElementById('adminStatus');
     if (result === 'cloud') {
-        status.textContent = '✅ База сохранена в облаке и готова к использованию!';
-        document.getElementById('dbStatus').textContent = '☁️ облако';
+        document.getElementById('dbStatus').textContent = '☁️ Cloud';
+        showToast('✅ Saved to cloud!');
     } else {
-        status.textContent = '✅ База сохранена локально';
+        showToast('✅ Saved locally');
     }
     
     updatePreview();
     updateStats();
-    
-    // Добавляем сообщение об обучении
-    addBotMessage('📚 База знаний обновлена! Я готов отвечать на новые вопросы.');
-    
-    setTimeout(() => {
-        status.textContent = '';
-        closeAllModals();
-    }, 1500);
-}
-
-function clearKnowledge() {
-    if (confirm('Вы уверены? Вся база знаний будет удалена.')) {
-        knowledgeBase = '';
-        localStorage.setItem('knowledge_base', '');
-        document.getElementById('knowledgeText').value = '';
-        updatePreview();
-        updateStats();
-        addBotMessage('🗑️ База знаний очищена.');
-    }
+    addBotMessage('📚 Knowledge base updated! I\'m ready for new questions.');
+    closeModals();
 }
 
 function clearHistory() {
-    if (confirm('Очистить историю диалога?')) {
+    if (confirm('Clear chat history?')) {
         chatHistory = [];
-        localStorage.removeItem('chat_history');
+        localStorage.removeItem('ai_history');
         document.getElementById('messages').innerHTML = '';
-        addBotMessage('🔄 История очищена. Начинаем новый диалог!');
+        addBotMessage('🔄 History cleared. New conversation!');
+        updateStats();
     }
 }
 
@@ -334,29 +766,17 @@ function clearHistory() {
 function findAnswer(question) {
     const q = question.toLowerCase().trim();
     
-    // 1. Приветствия
+    // Приветствия (RU/EN)
     for (let [key, answer] of Object.entries(GREETINGS)) {
         if (q.includes(key)) return answer;
     }
     
-    // 2. Учет истории (если вопрос связан с предыдущим)
-    if (chatHistory.length > 0) {
-        const lastBot = chatHistory.filter(m => m.type === 'bot').pop();
-        const lastUser = chatHistory.filter(m => m.type === 'user').pop();
-        
-        // Если спрашивают "а еще?" или "что еще?"
-        if (q.includes('ещё') || q.includes('еще') || q.includes('другой')) {
-            if (lastBot && lastBot.text.includes('пароль')) {
-                return findRelatedInfo('пароль', lastBot.text);
-            }
-        }
-    }
-    
-    // 3. Поиск по базе
+    // Проверка базы
     if (!knowledgeBase) {
-        return "База знаний пока пуста. Администратор ещё не загрузил информацию. Я могу поддержать беседу, но для серьёзных вопросов нужна база знаний.";
+        return "Knowledge base is empty. Admin needs to add information first.";
     }
     
+    // Умный поиск
     const sentences = knowledgeBase.split(/[.!?]\s+/).filter(s => s.length > 5);
     const qWords = q.split(/[\s,;?!]+/).filter(w => w.length > 2);
     
@@ -364,7 +784,6 @@ function findAnswer(question) {
         const s = sentence.toLowerCase();
         let score = 0;
         
-        // Совпадение слов
         for (let w of qWords) { 
             if (s.includes(w)) score += 10;
         }
@@ -374,11 +793,12 @@ function findAnswer(question) {
         const sNums = s.match(/\d+/g) || [];
         qNums.forEach(n => { if (sNums.includes(n)) score += 20; });
         
-        // Специальные паттерны
-        if ((q.includes('когда') || q.includes('время')) && s.match(/\d{1,2}[:.]\d{2}/)) score += 15;
-        if ((q.includes('почта') || q.includes('email')) && s.includes('@')) score += 15;
-        if (q.includes('кто') && s.match(/[А-Я][а-я]+\s[А-Я][а-я]+/)) score += 15;
-        if ((q.includes('пароль') || q.includes('код')) && (s.includes('пароль') || s.includes('код'))) score += 25;
+        // Специальные паттерны (RU/EN)
+        if ((q.includes('когда') || q.includes('when') || q.includes('time')) && s.match(/\d{1,2}[:.]\d{2}/)) score += 15;
+        if ((q.includes('email') || q.includes('почта')) && s.includes('@')) score += 15;
+        if ((q.includes('who') || q.includes('кто')) && s.match(/[А-ЯA-Z][а-яa-z]+\s[А-ЯA-Z][а-яa-z]+/)) score += 15;
+        if ((q.includes('password') || q.includes('пароль') || q.includes('code')) && 
+            (s.includes('password') || s.includes('пароль') || s.includes('code'))) score += 25;
         
         return { sentence, score };
     });
@@ -386,23 +806,13 @@ function findAnswer(question) {
     scored.sort((a, b) => b.score - a.score);
     
     if (scored[0].score > 20) return scored[0].sentence.trim();
-    if (scored[0].score > 10) return `Вот что нашлось:\n\n"${scored[0].sentence.trim()}"`;
-    if (scored[0].score > 5) return `Возможно, это:\n\n"${scored[0].sentence.trim()}"\n\nЕсли нет — уточните вопрос.`;
+    if (scored[0].score > 10) return `Found:\n\n"${scored[0].sentence.trim()}"`;
+    if (scored[0].score > 5) return `Maybe you mean:\n\n"${scored[0].sentence.trim()}"`;
     
-    return `К сожалению, в базе знаний нет точной информации по запросу "${question}".\n\nПопробуйте переформулировать вопрос.`;
+    return `No exact match for "${question}". Try rephrasing.`;
 }
 
-function findRelatedInfo(topic, exclude) {
-    const sentences = knowledgeBase.split(/[.!?]\s+/);
-    for (let s of sentences) {
-        if (s.toLowerCase().includes(topic) && !s.includes(exclude.substring(0, 30))) {
-            return `Вот ещё информация:\n\n"${s.trim()}"`;
-        }
-    }
-    return "Больше информации по этой теме нет.";
-}
-
-// ========== ИСТОРИЯ И СООБЩЕНИЯ ==========
+// ========== ОТПРАВКА СООБЩЕНИЙ ==========
 async function askQuestion() {
     const input = document.getElementById('questionInput');
     const q = input.value.trim();
@@ -411,7 +821,7 @@ async function askQuestion() {
     addUserMessage(q);
     input.value = '';
     
-    document.getElementById('typing').style.display = 'flex';
+    document.getElementById('typing').style.display = 'block';
     document.getElementById('askBtn').disabled = true;
     
     await new Promise(r => setTimeout(r, 500 + Math.random() * 800));
@@ -433,13 +843,13 @@ function addBotMessage(text) {
 
 function addMessage(text, type) {
     chatHistory.push({ text, type, time: Date.now() });
-    localStorage.setItem('chat_history', JSON.stringify(chatHistory));
+    localStorage.setItem('ai_history', JSON.stringify(chatHistory));
     
     const messagesDiv = document.getElementById('messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}-message`;
-    messageDiv.textContent = text;
-    messagesDiv.appendChild(messageDiv);
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${type}-message`;
+    msgDiv.textContent = text;
+    messagesDiv.appendChild(msgDiv);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     
     updateStats();
@@ -449,10 +859,10 @@ function renderHistory() {
     const messagesDiv = document.getElementById('messages');
     messagesDiv.innerHTML = '';
     chatHistory.forEach(msg => {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${msg.type}-message`;
-        messageDiv.textContent = msg.text;
-        messagesDiv.appendChild(messageDiv);
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${msg.type}-message`;
+        msgDiv.textContent = msg.text;
+        messagesDiv.appendChild(msgDiv);
     });
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
@@ -461,7 +871,15 @@ function handleKeyPress(e) {
     if (e.key === 'Enter') askQuestion(); 
 }
 
-// Запуск
+function showToast(text) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = text;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
+
+// Старт
 init();
 </script>
 </body>
